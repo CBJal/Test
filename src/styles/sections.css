@@ -1,0 +1,111 @@
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+}
+
+.hero {
+  column-gap: var(--grid-gutter-desktop);
+  align-items: flex-start;
+}
+
+.hero-content {
+  grid-column: span 8;
+  background: linear-gradient(135deg, var(--color-iris-purple), var(--color-pulse-pink));
+  color: var(--color-white);
+  padding: var(--spacing-6);
+  border-radius: 32px;
+  position: relative;
+}
+
+.hero-content::after {
+  content: "";
+  position: absolute;
+  inset: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+}
+
+.hero-content h1 {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-display-xl);
+  line-height: var(--line-height-heading);
+  margin-bottom: var(--spacing-3);
+}
+
+.hero-content .supporting {
+  max-width: 48ch;
+  font-size: var(--font-size-body-m);
+  margin-bottom: var(--spacing-4);
+}
+
+.hero-timeline {
+  grid-column: span 4;
+  background: var(--color-white);
+  padding: var(--spacing-4);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(30, 17, 53, 0.15);
+}
+
+@media (max-width: 1200px) {
+  .hero-content {
+    grid-column: span 8;
+  }
+  .hero-timeline {
+    grid-column: span 4;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-content,
+  .hero-timeline {
+    grid-column: span 4;
+  }
+}
+
+.case-study {
+  background: var(--color-white);
+  border-radius: 32px;
+  padding: var(--spacing-6);
+  gap: var(--grid-gutter-desktop);
+}
+
+.case-intro {
+  grid-column: span 6;
+}
+
+.case-details {
+  grid-column: span 6;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.metric {
+  font-family: var(--font-primary);
+  font-size: var(--font-size-display-l);
+  color: var(--color-iris-purple);
+}
+
+@media (max-width: 960px) {
+  .case-intro,
+  .case-details {
+    grid-column: span 8;
+  }
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .case-intro,
+  .case-details {
+    grid-column: span 4;
+  }
+}

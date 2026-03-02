@@ -1,0 +1,40 @@
+:root {
+  /* Color tokens */
+  --color-iris-purple: #6e2aac;
+  --color-soft-lilac: #f3d6ff;
+  --color-pulse-pink: #ff4fa7;
+  --color-slate-ink: #1d1b26;
+  --color-mist-gray: #efeff5;
+  --color-white: #ffffff;
+
+  /* Functional tokens */
+  --color-focus-ring: var(--color-pulse-pink);
+  --color-cta-primary-bg: var(--color-iris-purple);
+  --color-cta-primary-hover: #c7a0e9;
+
+  /* Typography */
+  --font-primary: "Whyte Inktrap", "Inter", sans-serif;
+  --font-secondary: "Space Grotesk", "Inter", sans-serif;
+  --font-size-display-xl: 4rem;
+  --font-size-display-l: 3rem;
+  --font-size-body-m: 1.125rem;
+  --font-size-detail: 1rem;
+  --line-height-heading: 1.2;
+  --line-height-body: 1.45;
+
+  /* Spacing + grid */
+  --spacing-unit: 8px;
+  --spacing-2: calc(var(--spacing-unit) * 2);
+  --spacing-3: calc(var(--spacing-unit) * 3);
+  --spacing-4: calc(var(--spacing-unit) * 4);
+  --spacing-6: calc(var(--spacing-unit) * 6);
+  --grid-gutter-desktop: 32px;
+  --grid-gutter-tablet: 24px;
+  --grid-gutter-mobile: 16px;
+  --grid-margin-desktop: 120px;
+  --grid-margin-tablet: 72px;
+  --grid-margin-mobile: 32px;
+
+  /* Shadow / focus */
+  --focus-ring: 0 0 0 3px var(--color-soft-lilac), 0 0 0 6px var(--color-focus-ring);
+}
