@@ -1,4 +1,4 @@
-# Witteveen App
+# Prism App
 
 ## Project Overview
 React + Vite application.

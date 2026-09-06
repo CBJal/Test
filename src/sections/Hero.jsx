@@ -12,7 +12,7 @@ function Hero() {
   return (
     <section className="eye-grid hero">
       <div className="hero-content">
-        <p className="eyebrow">Witteveen · Eye for detail</p>
+        <p className="eyebrow">Prism · Eye for detail</p>
         <h1>Approachable creativity with meticulous focus.</h1>
         <p className="supporting">
           We transform every collaboration into a guided experience—combining color mastery, process
