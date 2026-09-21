@@ -57,16 +57,17 @@ not a third party) via
 `POST https://api.apify.com/v2/actors/apify~instagram-scraper/run-sync-get-dataset-items?token=...`
 with `{ directUrls: [url], resultsType: "details", resultsLimit: 1 }`.
 
-**Important caveat, stated plainly**: this repo's build sandbox has
-`apify.com` blocked by its network egress policy (see "Known limitations"),
-so the actor's input/output schema documented in
-`scripts/lib/providers/apify.mjs` could not be confirmed against Apify's
-live docs while writing this. The parsing code was written defensively
-(it checks several known field-name variants for carousel children and
-surfaces the raw API response on failure) specifically because of this
-gap. **Before relying on this in production, run it once against a real
-post and confirm the output matches** — see "Testing" below for exactly
-what was and wasn't verified.
+**Update**: this actor and input shape have since been confirmed against
+a real live carousel post (see "Testing performed" below) — a 2-slide
+carousel was correctly detected and both images downloaded. The build
+sandbox itself still can't reach `apify.com` (see "Known limitations"),
+so this was verified via a local run outside the sandbox, not from here.
+The defensive field-name checking in `normalizeApifyResult()` (it tries
+several known carousel field names and surfaces the raw API response on
+failure) is kept as-is even though the primary path is now confirmed —
+Apify actor schemas do still drift over time, and single-image/reel posts
+and the error-classification paths remain unverified against live data
+(see "Testing performed" for exactly what is and isn't covered).
 
 ## Setup
 
@@ -116,7 +117,31 @@ in `SKILL.md`, then runs `cleanup.mjs` on `outDir`.
 
 ## Testing performed
 
-What **was** verified, in this sandbox, without network access to
+**Real end-to-end extraction confirmed**, run locally (outside this
+sandbox, which blocks the required network access — see below) against a
+live public carousel post, with a real `APIFY_API_TOKEN`:
+
+```
+node .claude/skills/instagram-reference-analyzer/scripts/extract.mjs \
+  "https://www.instagram.com/p/<real-shortcode>/" --out-dir /tmp/ig_test
+```
+
+Result: `ok: true`, a 2-slide carousel correctly detected (not just slide
+1), both images downloaded (`slide_01.jpg`, `slide_02.jpg`) plus
+`post_metadata.json`, caption/owner/stats populated. This confirms the
+default actor (`apify/instagram-scraper`), its input shape
+(`directUrls`/`resultsType`/`resultsLimit`), and the carousel-detection
+field-parsing in `normalizeApifyResult()` are all correct against Apify's
+current live output — the biggest open risk noted in an earlier pass of
+this file is resolved.
+
+Not yet exercised by that run: a single-image (non-carousel) post, a
+reel/video post (thumbnail-only path), and the `private_or_unavailable`
+and `deleted` error classifications against real unavailable posts. The
+parsing logic handles all of these in code, but only the carousel happy
+path has been confirmed against live data so far.
+
+What **was** verified in this sandbox itself, without network access to
 Instagram or Apify:
 
 - URL parsing/normalization: all supported and unsupported forms
@@ -130,7 +155,8 @@ Instagram or Apify:
   delete a path that doesn't look like one it created (tested against
   this repo's root as a guard-rail check).
 
-What was attempted but blocked by this sandbox's network policy:
+What was attempted but blocked by this sandbox's network policy (this is
+why the real test above had to be run locally instead of from here):
 
 - A real Apify actor run against a live Instagram URL. `api.apify.com` is
   denied by this environment's egress gateway — confirmed both via `curl`
@@ -161,10 +187,13 @@ What was attempted but blocked by this sandbox's network policy:
   `*.fbcdn.net`) to its network egress allowlist. See
   https://code.claude.com/docs/en/claude-code-on-the-web for how
   environment network policy is configured.
-- No live end-to-end run (URL → images → vision analysis → report) has
-  been completed. **Do the first real run yourself, with your own
-  `APIFY_API_TOKEN`, against a post you're allowed to test with, before
-  trusting this for anything important.**
+- This is specifically why the confirmed test above was run locally
+  instead of from here — the extraction half of the pipeline (URL →
+  downloaded images + metadata) is now verified against live data (see
+  above). The remaining unverified half is Claude actually reading the
+  downloaded images and producing the report per `SKILL.md` — that
+  requires a full skill invocation (not just the script), which hasn't
+  been run yet either from here or locally.
 
 ## Troubleshooting
 
@@ -204,10 +233,13 @@ change — they only depend on the common shape, never on Apify specifically.
 
 Read before treating this as production-ready:
 
-1. **Unverified against a real successful Apify run** (see Testing above)
-   — the single biggest open risk. The defensive parsing means a schema
-   mismatch fails loudly with the raw JSON attached rather than silently
-   producing a wrong report, but it hasn't been proven correct on real data.
+1. **Confirmed for the carousel happy path only.** A real 2-slide carousel
+   post was extracted correctly end-to-end (see Testing above). Single-image
+   posts, reels, and the private/deleted error paths are implemented but
+   still unverified against live data — the defensive parsing means a
+   schema mismatch on any of those would fail loudly with the raw JSON
+   attached rather than silently producing a wrong report, but that's not
+   the same as having proven them correct.
 2. **Actor output schemas drift.** Apify actors (including Apify's own)
    change field names/shapes over time without much notice. There's no
    automated check that would catch this before a run fails.
