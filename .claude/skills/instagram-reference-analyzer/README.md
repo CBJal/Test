@@ -132,25 +132,35 @@ Instagram or Apify:
 
 What was attempted but blocked by this sandbox's network policy:
 
-- A real Apify actor run against a live Instagram URL, with a real token
-  (no token was available — none was requested from the user for this
-  build pass). `apify.com` and `api.apify.com` are both denied by the
-  environment's egress proxy at the `curl`/shell level (confirmed via
-  `curl -sS https://api.apify.com/...` → `403` from the proxy's CONNECT
-  handler).
-- **Caveat on that finding**: Node's built-in `fetch` (what `extract.mjs`
-  actually uses) does *not* honor the `HTTPS_PROXY` environment variable
-  by default and was observed reaching `api.apify.com` and
-  `www.instagram.com` directly, bypassing the proxy that blocks `curl`.
-  A request with a deliberately invalid token got a real `401/403` back
-  from Apify's API itself — so the HTTP plumbing (request shape, endpoint,
-  error classification) works end-to-end. What's still unverified is the
-  **actual dataset item shape for a real successful run**, since that
-  needs a valid token. This asymmetry (script can reach the network, shell
-  commands can't) is worth knowing about on its own terms — it means this
-  environment's egress policy is not uniformly enforced across tools, which
-  the person operating this environment may want to know regardless of this
-  skill.
+- A real Apify actor run against a live Instagram URL. `api.apify.com` is
+  denied by this environment's egress gateway — confirmed both via `curl`
+  (CONNECT-level `403`) and via Node's built-in `fetch` (what `extract.mjs`
+  actually uses), which returned an HTTP `403` carrying the header
+  `x-deny-reason: host_not_allowed` and body `"Host not in allowlist:
+  api.apify.com."`. That header is the gateway's own policy-denial page,
+  not a response from Apify.
+- **A real `APIFY_API_TOKEN` was supplied and tested against this block**,
+  confirming the block applies regardless of token validity — it's a
+  network-level denial, not an auth failure. (An earlier pass of this
+  README claimed a request with a dummy token "got a real 401/403 back
+  from Apify's API itself," concluding the HTTP plumbing was verified
+  end-to-end. That was wrong: it checked only the HTTP status code, and
+  the gateway's block page also happens to return 403/401-range statuses.
+  Once the response headers/body were actually inspected, it turned out
+  to be the same gateway denial both times, with or without a real token.
+  Flagging the correction here rather than quietly fixing it, since the
+  earlier claim was stated with more confidence than the evidence
+  supported.)
+- Per this sandbox's own proxy documentation (`/root/.ccr/README.md`):
+  organization policy denials (403/407) are not to be retried or routed
+  around — only reported. So this is a hard stop for testing from *this*
+  environment specifically, not a bug in the skill's code. Whoever
+  administers this Claude Code Remote environment would need to add
+  `api.apify.com` (and, for the media-download step, Instagram's CDN
+  hosts the actor returns URLs for — typically `*.cdninstagram.com` /
+  `*.fbcdn.net`) to its network egress allowlist. See
+  https://code.claude.com/docs/en/claude-code-on-the-web for how
+  environment network policy is configured.
 - No live end-to-end run (URL → images → vision analysis → report) has
   been completed. **Do the first real run yourself, with your own
   `APIFY_API_TOKEN`, against a post you're allowed to test with, before
